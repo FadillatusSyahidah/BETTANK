@@ -36,6 +36,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   late final Stream<DatabaseEvent> _deviceStream;
+  double? _lastValidTds;
 
   @override
   void initState() {
@@ -167,7 +168,9 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildSensorGrid(DataSnapshot? sensors) {
     final ph = _parseDouble(sensors?.child('ph').value);
     final temp = _parseDouble(sensors?.child('temp').value);
-    final tds = _parseDouble(sensors?.child('tds').value);
+    final rawTds = _parseDouble(sensors?.child('tds').value);
+    if (rawTds != null && rawTds > 0) _lastValidTds = rawTds;
+    final tds = rawTds ?? _lastValidTds;
     final turb = _parseDouble(sensors?.child('turbNTU').value);
 
     return GridView.count(
@@ -382,7 +385,8 @@ Widget _buildPumpActivityCard(DataSnapshot? sensors, String? lastCycleStr) {
 
   Widget _buildAlertStatusCard(DataSnapshot? sensors) {
     final temp = _parseDouble(sensors?.child('temp').value);
-    final tds = _parseDouble(sensors?.child('tds').value);
+    final liveTds = _parseDouble(sensors?.child('tds').value);
+    final tds = (liveTds != null && liveTds > 0) ? liveTds : _lastValidTds;
     final turb = _parseDouble(sensors?.child('turbNTU').value);
     final ph = _parseDouble(sensors?.child('ph').value);
 
